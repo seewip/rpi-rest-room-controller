@@ -114,7 +114,7 @@ app.put(BASE_API_PATH + "/lights/:number", function(request, response) {
             success = false;
     }
     if(success) response.sendStatus(200);
-    response.sendStatus(400);
+    else response.sendStatus(400);
 });
 
 // GET Temperature and Humidity readings (climate)
