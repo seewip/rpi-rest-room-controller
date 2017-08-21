@@ -128,13 +128,13 @@ app.get(BASE_API_PATH + "/climate", function(request, response) {
     }
     var limit = 120;
     if(!isNaN(request.query.limit)) limit = Number(request.query.limit);
-    db.find({}).sort({_id:-1}).limit(limit).sort({_id:1}).toArray(function(err, data) {
+    db.find({}).sort({_id:-1}).limit(limit).toArray(function(err, data) {
         if (err) {
             console.error('WARNING: Error getting data from DB');
             response.sendStatus(500); // internal server error
         }
         else {
-            response.send(data);
+            response.send(data.reverse());
         }
     });
 });
