@@ -19,6 +19,7 @@
   "homepage": "https://github.com/seewip/rpi-rest-room-controller#readme",
   "dependencies": {
     "body-parser": "^1.17.2",
+    "cors": "^2.8.4",
     "express": "^4.15.4",
     "helmet": "^3.8.1",
     "moment": "^2.18.1",
