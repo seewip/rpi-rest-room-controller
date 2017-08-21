@@ -40,7 +40,7 @@ var checkApiKeyFunction = function(request, response) {
 // Read MongoDB URI from file
 
 try {
-    mdbURL = fs.readFileSync(mongodbConfigurationFile).toString('utf-8');
+    mdbURL = fs.readFileSync(mongodbConfigurationFile).toString('utf-8').replace(/(\r\n|\n|\r)/gm,"");
 } catch (err) {
     console.log("File containing MongoDB URI could not be found. The application will now exit. File location: " + mongodbConfigurationFile);
     console.log(err);
