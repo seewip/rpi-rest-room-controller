@@ -9,6 +9,7 @@ var moment = require("moment");
 var express = require("express");
 var bodyParser = require("body-parser");
 var helmet = require("helmet");
+var cors = require("cors");
 var fs = require("fs");
 
 var publicFolder = path.join(__dirname, '/public');
@@ -18,6 +19,7 @@ var port = (process.env.PORT || 10000);
 var app = express();
 app.use(bodyParser.json());
 app.use(helmet());
+app.use(cors());
 
 var mdbURL;
 var db;
