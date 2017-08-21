@@ -1,0 +1,28 @@
+{
+  "name": "rpi-rest-room-controller",
+  "version": "1.0.0",
+  "description": "This package is a node.js application exposing a REST interface to access lights and sensors in my room",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seewip/rpi-rest-room-controller.git"
+  },
+  "author": "seewip",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/seewip/rpi-rest-room-controller/issues"
+  },
+  "homepage": "https://github.com/seewip/rpi-rest-room-controller#readme",
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "express": "^4.15.4",
+    "helmet": "^3.8.1",
+    "moment": "^2.18.1",
+    "mongodb": "^2.2.31",
+    "path": "^0.12.7"
+  }
+}
