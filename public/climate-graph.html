@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html ng-app="SOSP">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RPI KRK Climate</title>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/5.0.14/highcharts.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.5/angular.min.js"></script>
+    <script>
+        /* global $ */
+        /* global angular */
+        /* global Highcharts */
+        var app = angular.module("SOSP", []);
+        console.log("App initialized");
+        app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
+            console.log("Controller initialized");
+
+            function getParameterByName(name, url) {
+                if (!url) url = window.location.href;
+                name = name.replace(/[\[\]]/g, "\\$&");
+                var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                    results = regex.exec(url);
+                if (!results) return null;
+                if (!results[2]) return '';
+                return decodeURIComponent(results[2].replace(/\+/g, " "));
+            }
+
+            var limit = 120;
+            if (!isNaN(getParameterByName("limit"))) limit = getParameterByName("limit");
+
+            $scope.refresh = function() {
+                $http
+                    .get("https://api.seewip.com/rpi-krk/api/v1/climate?apikey=" + getParameterByName("apikey") + "&limit=" + limit)
+                    .then(function(response) {
+                        var timestamp = [];
+                        var temperature = [];
+                        var humidity = [];
+
+                        var prevDate = "";
+                        response.data.forEach((x) => {
+                            if (x.time && x.date && x.temperature && x.humidity) {
+                                if (prevDate === x.date) timestamp.push(x.time);
+                                else timestamp.push(x.date + " " + x.time);
+                                temperature.push(x.temperature);
+                                humidity.push(x.humidity);
+                                prevDate = x.date;
+                            }
+                        });
+
+                        var hc = {
+                            chart: {
+                                zoomType: 'xy'
+                            },
+                            title: {
+                                text: 'RPI KRK Climate'
+                            },
+                            xAxis: {
+                                categories: timestamp,
+                                crosshair: true
+                            },
+                            yAxis: [{ // Primary yAxis
+                                labels: {
+                                    format: '{value} C',
+                                    style: {
+                                        color: Highcharts.getOptions().colors[1]
+                                    }
+                                },
+                                title: {
+                                    text: 'Temperature (C)',
+                                    style: {
+                                        color: Highcharts.getOptions().colors[1]
+                                    }
+                                }
+
+                            }, { // Secondary yAxis
+                                gridLineWidth: 0,
+                                title: {
+                                    text: 'Humidity (%)',
+                                    style: {
+                                        color: Highcharts.getOptions().colors[0]
+                                    }
+                                },
+                                labels: {
+                                    format: '{value} %',
+                                    style: {
+                                        color: Highcharts.getOptions().colors[0]
+                                    }
+                                },
+                                opposite: true
+                            }],
+                            tooltip: {
+                                shared: true
+                            },
+                            plotOptions: {
+                                column: {
+                                    stacking: 'normal'
+                                }
+                            },
+                            series: [{
+                                type: 'spline',
+                                name: 'Temperature',
+                                yAxis: 0,
+                                data: temperature
+                            }, {
+                                type: 'spline',
+                                name: 'Humidity',
+                                yAxis: 1,
+                                data: humidity
+                            }]
+                        };
+
+                        Highcharts.chart('hc_column', hc);
+                    });
+            };
+
+            $scope.refresh();
+
+        }]);
+    </script>
+</head>
+
+<body ng-controller="MainCtrl">
+    <div id="hc_column" style="width: 95%; margin: 0 auto"></div>
+</body>
+
+</html>
