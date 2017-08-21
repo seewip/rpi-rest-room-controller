@@ -20,7 +20,6 @@ app.use(bodyParser.json());
 app.use(helmet());
 
 var mdbURL;
-var port = (process.env.PORT || 10000);
 var db;
 
 // Helper method to check for apikey
@@ -41,7 +40,7 @@ var checkApiKeyFunction = function(request, response) {
 // Read MongoDB URI from file
 
 try {
-mdbURL = fs.readFileSync(mongodbConfigurationFile).toString('utf-8');
+    mdbURL = fs.readFileSync(mongodbConfigurationFile).toString('utf-8');
 } catch (err) {
     console.log("File containing MongoDB URI could not be found. The application will now exit. File location: " + mongodbConfigurationFile);
     console.log(err);
@@ -56,7 +55,7 @@ MongoClient.connect(mdbURL, {
 
     if (err) {
         console.log("CAN NOT CONNECT TO DB: " + err);
-        process.exit(1);
+        throw err;
     }
 
     db = database.collection("temperature_humidity");
