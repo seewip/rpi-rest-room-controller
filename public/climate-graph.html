@@ -14,6 +14,9 @@
         var app = angular.module("SOSP", []);
         console.log("App initialized");
         app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
+            $scope.curtemp = "n/a";
+            $scope.curhum = "n/a";
+            
             console.log("Controller initialized");
 
             function getParameterByName(name, url) {
@@ -47,14 +50,17 @@
                                 prevDate = x.date;
                             }
                         });
+                        
+                        $scope.curtemp = temperature[temperature.length-1];
+                        $scope.curhum = humidity[humidity.length-1];
 
                         var hc = {
                             chart: {
                                 zoomType: 'xy'
                             },
-                            title: {
-                                text: 'RPI KRK Climate'
-                            },
+                            // title: {
+                            //     text: 'RPI KRK Climate'
+                            // },
                             xAxis: {
                                 categories: timestamp,
                                 crosshair: true
@@ -63,13 +69,13 @@
                                 labels: {
                                     format: '{value} C',
                                     style: {
-                                        color: Highcharts.getOptions().colors[1]
+                                        color: Highcharts.getOptions().colors[0]
                                     }
                                 },
                                 title: {
                                     text: 'Temperature (C)',
                                     style: {
-                                        color: Highcharts.getOptions().colors[1]
+                                        color: Highcharts.getOptions().colors[0]
                                     }
                                 }
 
@@ -78,13 +84,13 @@
                                 title: {
                                     text: 'Humidity (%)',
                                     style: {
-                                        color: Highcharts.getOptions().colors[0]
+                                        color: Highcharts.getOptions().colors[1]
                                     }
                                 },
                                 labels: {
                                     format: '{value} %',
                                     style: {
-                                        color: Highcharts.getOptions().colors[0]
+                                        color: Highcharts.getOptions().colors[1]
                                     }
                                 },
                                 opposite: true
@@ -123,6 +129,8 @@
 </head>
 
 <body ng-controller="MainCtrl">
+    <h1>RPi KRK Climate Information</h1>
+    <h3>Temperature: <b>{{curtemp}} C</b>, Humidity: <b>{{curhum}} %</b></h3>
     <div id="hc_column" style="width: 95%; margin: 0 auto"></div>
 </body>
 

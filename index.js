@@ -73,7 +73,7 @@ MongoClient.connect(mdbURL, {
             var obj = {time: moment().format('HH:mm:ss'), date: moment().format('DD.MM.YYYY'), timestamp: moment().unix(), temperature: Number(input[0]), humidity: Number(input[1])};
             db.insert(obj);
         }
-    }, 60 * 1000);
+    }, 60 * 15 * 1000);
 
     app.listen(port, () => {
         console.log("Database connected successfully. Web server is listening on port " + port);
