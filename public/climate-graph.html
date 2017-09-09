@@ -16,6 +16,7 @@
         app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
             $scope.curtemp = "n/a";
             $scope.curhum = "n/a";
+            $scope.loading = true;
             
             console.log("Controller initialized");
 
@@ -33,6 +34,7 @@
             if (!isNaN(getParameterByName("limit"))) limit = getParameterByName("limit");
 
             $scope.refresh = function() {
+                $scope.loading = true;
                 $http
                     .get("https://api.seewip.com/rpi-krk/api/v1/climate?apikey=" + getParameterByName("apikey") + "&limit=" + limit)
                     .then(function(response) {
@@ -43,8 +45,8 @@
                         var prevDate = "";
                         response.data.forEach((x) => {
                             if (x.time && x.date && x.temperature && x.humidity) {
-                                if (prevDate === x.date) timestamp.push(x.time);
-                                else timestamp.push(x.date + " " + x.time);
+                                /*if (prevDate === x.date) timestamp.push(x.time);
+                                else*/ timestamp.push(x.date + " " + x.time);
                                 temperature.push(x.temperature);
                                 humidity.push(x.humidity);
                                 prevDate = x.date;
@@ -69,13 +71,13 @@
                                 labels: {
                                     format: '{value} C',
                                     style: {
-                                        color: Highcharts.getOptions().colors[0]
+                                        color: Highcharts.getOptions().colors[1]
                                     }
                                 },
                                 title: {
                                     text: 'Temperature (C)',
                                     style: {
-                                        color: Highcharts.getOptions().colors[0]
+                                        color: Highcharts.getOptions().colors[1]
                                     }
                                 }
 
@@ -84,13 +86,15 @@
                                 title: {
                                     text: 'Humidity (%)',
                                     style: {
-                                        color: Highcharts.getOptions().colors[1]
+                                        color: "#7cb5ec"
+                                        //color: Highcharts.getOptions().colors[0]
                                     }
                                 },
                                 labels: {
                                     format: '{value} %',
                                     style: {
-                                        color: Highcharts.getOptions().colors[1]
+                                        color: "#434348"
+                                        //color: Highcharts.getOptions().colors[0]
                                     }
                                 },
                                 opposite: true
@@ -109,16 +113,19 @@
                                 type: 'spline',
                                 name: 'Temperature',
                                 yAxis: 0,
-                                data: temperature
+                                data: temperature,
+				color: "#434348"
                             }, {
                                 type: 'spline',
                                 name: 'Humidity',
                                 yAxis: 1,
-                                data: humidity
+                                data: humidity,
+                                color: "#7cb5ec"
                             }]
                         };
 
                         Highcharts.chart('hc_column', hc);
+                        $scope.loading = false;
                     });
             };
 
@@ -130,7 +137,8 @@
 
 <body ng-controller="MainCtrl">
     <h1>RPi KRK Climate Information</h1>
-    <h3>Temperature: <b>{{curtemp}} C</b>, Humidity: <b>{{curhum}} %</b></h3>
+    <h3 ng-show="loading">Loading...</h3>
+    <h3 ng-hide="loading">Temperature: <b>{{curtemp}} C</b>, Humidity: <b>{{curhum}} %</b></h3>
     <div id="hc_column" style="width: 95%; margin: 0 auto"></div>
 </body>
 
