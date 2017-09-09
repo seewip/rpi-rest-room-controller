@@ -64,8 +64,7 @@ function checkInternet(cb) {
 	require('dns').lookupService('8.8.8.8', 53, function(err, hostname, service) {
 		if(err) {
 			console.log("No internet connection!");
-			console.log(err);
-			setTimeout(() => {checkInternet(cb);}, 1000);
+			setTimeout(() => {checkInternet(cb);}, 2000);
 		} else {
 			console.log("Internet connection available, connecting to MongoDB database...");
 			cb();
