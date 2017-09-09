@@ -1,5 +1,5 @@
 // API key used to access the REST interface
-var API_KEY = "secret";
+var API_KEY = "***REMOVED***";
 
 var path = require('path');
 // Path to a file containing a full MongoDB URI
@@ -51,6 +51,21 @@ try {
 
 console.log("Loaded file with MongoDB URI, connecting now...");
 
+function checkInternet(cb) {
+	require('dns').lookupService('8.8.8.8', 53, function(err, hostname, service) {
+		if(err) {
+			console.log("No internet connection!");
+			console.log(err);
+			setTimeout(() => {checkInternet(cb);}, 1000);
+		} else {
+			console.log("Internet connection available, connecting to MongoDB database...");
+			cb();
+		}
+	});
+}
+
+checkInternet(function() {
+
 MongoClient.connect(mdbURL, {
     native_parser: true
 }, function(err, database) {
@@ -78,6 +93,8 @@ MongoClient.connect(mdbURL, {
     app.listen(port, () => {
         console.log("Database connected successfully. Web server is listening on port " + port);
     });
+
+});
 
 });
 
