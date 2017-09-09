@@ -1,8 +1,9 @@
 // API key used to access the REST interface
-var API_KEY = "***REMOVED***";
+var API_KEY = "";
 
 var path = require('path');
 // Path to a file containing a full MongoDB URI
+var apikeyConfigurationFile = path.join(__dirname, '/apikey.conf');
 var mongodbConfigurationFile = path.join(__dirname, '/mongodb.conf');
 
 var moment = require("moment");
@@ -39,8 +40,16 @@ var checkApiKeyFunction = function(request, response) {
     return true;
 };
 
-// Read MongoDB URI from file
+// Read apikey from file
+try {
+    API_KEY = fs.readFileSync(apikeyConfigurationFile).toString('utf-8').replace(/(\r\n|\n|\r)/gm,"");
+} catch (err) {
+    console.log("File containing APIKEY could not be found. The application will now exit. File location: " + apikeyConfigurationFile);
+    console.log(err);
+    process.exit(1);
+}
 
+// Read MongoDB URI from file
 try {
     mdbURL = fs.readFileSync(mongodbConfigurationFile).toString('utf-8').replace(/(\r\n|\n|\r)/gm,"");
 } catch (err) {
