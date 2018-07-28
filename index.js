@@ -72,6 +72,18 @@ function checkInternet(cb) {
 	});
 }
 
+function getTemps() {
+        var exec = require('child_process').spawnSync;
+        var process = exec('/home/pi/nodetemp.sh');
+        var input = process.stdout.toString().split(",");
+        if (input.length != 2) {
+            console.log("Malformed information about temperature/humidity, skipping - " + process.stdout.toString());
+        } else {
+            var obj = {time: moment().format('HH:mm:ss'), date: moment().format('DD.MM.YYYY'), timestamp: moment().unix(), temperature: Number(input[0]), humidity: Number(input[1])};
+            db.insert(obj);
+        }
+}
+
 checkInternet(function() {
 
 MongoClient.connect(mdbURL, {
@@ -86,16 +98,8 @@ MongoClient.connect(mdbURL, {
     db = database.collection("temperature_humidity");
 
     // Run temperature and humidity data gathering
-    setInterval(() => {
-        var exec = require('child_process').spawnSync;
-        var process = exec('/home/pi/nodetemp.sh');
-        var input = process.stdout.toString().split(",");
-        if (input.length != 2) {
-            console.log("Malformed information about temperature/humidity, skipping - " + process.stdout.toString());
-        } else {
-            var obj = {time: moment().format('HH:mm:ss'), date: moment().format('DD.MM.YYYY'), timestamp: moment().unix(), temperature: Number(input[0]), humidity: Number(input[1])};
-            db.insert(obj);
-        }
+	getTemps();
+    setInterval(getTemps()
     }, 60 * 15 * 1000);
 
     app.listen(port, () => {
