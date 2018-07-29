@@ -100,7 +100,7 @@ MongoClient.connect(mdbURL, {
     // Run temperature and humidity data gathering
 	getTemps();
     setInterval(getTemps()
-    }, 60 * 15 * 1000);
+    , 60 * 15 * 1000);
 
     app.listen(port, () => {
         console.log("Database connected successfully. Web server is listening on port " + port);
