@@ -99,7 +99,7 @@ MongoClient.connect(mdbURL, {
 
     // Run temperature and humidity data gathering
 	getTemps();
-    setInterval(getTemps()
+    setInterval(() => {getTemps()}
     , 60 * 15 * 1000);
 
     app.listen(port, () => {
