@@ -72,15 +72,17 @@ function checkInternet(cb) {
 	});
 }
 
-function getTemps() {
+function getTemps(insertIntoDB) {
         var exec = require('child_process').spawnSync;
         var process = exec('/home/pi/nodetemp.sh');
         var input = process.stdout.toString().split(",");
         if (input.length != 2) {
             console.log("Malformed information about temperature/humidity, skipping - " + process.stdout.toString());
+	    if (!insertIntoDB) return {err: "Sensor returned malformed information"};
         } else {
             var obj = {time: moment().format('HH:mm:ss'), date: moment().format('DD.MM.YYYY'), timestamp: moment().unix(), temperature: Number(input[0]), humidity: Number(input[1])};
-            db.insert(obj);
+	    if (insertIntoDB) db.insert(obj);
+	    else return obj;
         }
 }
 
@@ -98,8 +100,8 @@ MongoClient.connect(mdbURL, {
     db = database.collection("temperature_humidity");
 
     // Run temperature and humidity data gathering
-	getTemps();
-    setInterval(() => {getTemps()}
+	getTemps(true);
+    setInterval(() => {getTemps(true)}
     , 60 * 15 * 1000);
 
     app.listen(port, () => {
@@ -166,4 +168,15 @@ app.get(BASE_API_PATH + "/climate", function(request, response) {
             response.send(data.reverse());
         }
     });
+});
+
+app.get(BASE_API_PATH + "/climate_current", function(request, response) {
+    console.log("INFO: New GET request to /climate_current");
+    if (!checkApiKeyFunction(request, response)) {
+        return;
+    }
+    var temps = getTemps(false);
+    if (temps.err) console.log("WARN: getTemps error - "+temps.err);
+    else console.log("INFO: Climate_current "+temps.date+" "+temps.time+" temp: "+temps.temperature+" C, humid: "+temps.humidity+" %");
+    response.send(temps);
 });

@@ -13,10 +13,15 @@
         /* global Highcharts */
         var app = angular.module("SOSP", []);
         console.log("App initialized");
-        app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
+        app.controller("MainCtrl", ["$scope", "$http", "$interval", function($scope, $http, $interval) {
+	    var base_url = "http://rpikrk.api.seewip.com:20080/";
             $scope.curtemp = "n/a";
             $scope.curhum = "n/a";
+	    $scope.curtimestamp = "n/a";
+	    $scope.live = {loading: true};
             $scope.loading = true;
+
+            var timestamp, temperature, humidity;
             
             console.log("Controller initialized");
 
@@ -33,30 +38,18 @@
             var limit = 120;
             if (!isNaN(getParameterByName("limit"))) limit = getParameterByName("limit");
 
-            $scope.refresh = function() {
-                $scope.loading = true;
-                $http
-                    .get("https://api.seewip.com/rpi-krk/api/v1/climate?apikey=" + getParameterByName("apikey") + "&limit=" + limit)
-                    .then(function(response) {
-                        var timestamp = [];
-                        var temperature = [];
-                        var humidity = [];
+	    $scope.update_graph = function() {
+		    var live_timestamp = timestamp.slice(0);
+		    var live_temperature = temperature.slice(0);
+		    var live_humidity = humidity.slice(0);
 
-                        var prevDate = "";
-                        response.data.forEach((x) => {
-                            if (x.time && x.date && x.temperature && x.humidity) {
-                                /*if (prevDate === x.date) timestamp.push(x.time);
-                                else*/ timestamp.push(x.date + " " + x.time);
-                                temperature.push(x.temperature);
-                                humidity.push(x.humidity);
-                                prevDate = x.date;
-                            }
-                        });
-                        
-                        $scope.curtemp = temperature[temperature.length-1];
-                        $scope.curhum = humidity[humidity.length-1];
+		    if(!$scope.live.err) {
+		    	live_timestamp.push($scope.live.date+" "+$scope.live.time);
+			live_temperature.push($scope.live.temperature);
+			live_humidity.push($scope.live.humidity);
+		    }
 
-                        var hc = {
+	                var hc = {
                             chart: {
                                 zoomType: 'xy'
                             },
@@ -64,7 +57,7 @@
                                 text: null
                             },
                             xAxis: {
-                                categories: timestamp,
+                                categories: live_timestamp,
                                 crosshair: true
                             },
                             yAxis: [{ // Primary yAxis
@@ -97,6 +90,8 @@
                                         //color: Highcharts.getOptions().colors[0]
                                     }
                                 },
+				min: 0,
+				max: 100,
                                 opposite: true
                             }],
                             tooltip: {
@@ -106,39 +101,87 @@
                                 series: {
                                     marker: {
                                         enabled: false
-                                    }
+                                    },
+				    animation: false
                                 }
                             },
                             series: [{
                                 type: 'spline',
                                 name: 'Temperature',
                                 yAxis: 0,
-                                data: temperature,
+                                data: live_temperature,
 				color: "#434348"
                             }, {
                                 type: 'spline',
                                 name: 'Humidity',
                                 yAxis: 1,
-                                data: humidity,
+                                data: live_humidity,
                                 color: "#7cb5ec"
                             }]
                         };
 
                         Highcharts.chart('hc_column', hc);
+	    }
+
+            $scope.refresh = function() {
+                $scope.loading = true;
+                $http
+                    .get(base_url+"api/v1/climate?apikey=" + getParameterByName("apikey") + "&limit=" + limit)
+                    .then(function(response) {
+                        timestamp = [];
+                        temperature = [];
+                        humidity = [];
+
+                        var prevDate = "";
+                        response.data.forEach((x) => {
+                            if (x.time && x.date && x.temperature && x.humidity) {
+                                /*if (prevDate === x.date) timestamp.push(x.time);
+                                else*/ timestamp.push(x.date + " " + x.time);
+                                temperature.push(x.temperature);
+                                humidity.push(x.humidity);
+                                prevDate = x.date;
+                            }
+                        });
+                        
+                        $scope.curtemp = temperature[temperature.length-1];
+                        $scope.curhum = humidity[humidity.length-1];
+			$scope.curtimestamp = timestamp[timestamp.length-1];
+
+			$scope.update_graph();
+			refresh_live();
+
                         $scope.loading = false;
-                    });
+
+		    });
             };
+
+	    refresh_live = function() {
+                $http
+                    .get(base_url+"api/v1/climate_current?apikey=" + getParameterByName("apikey"))
+                    .then(function(response) {
+			$scope.live = response.data;
+			$scope.update_graph();
+		    });
+	    };	
 
             $scope.refresh();
 
-        }]);
+	    $interval(function () {refresh_live()}, 5000);
+	    $interval(function () {$scope.refresh()}, 60000);
+	}]);
     </script>
+    <style>
+        #timedate {
+	    color: #666666;
+	    font-weight: lighter;
+	}
+    </style>
 </head>
 
 <body ng-controller="MainCtrl">
-    <h1>RPi KRK Climate Information</h1>
-    <h3 ng-show="loading">Loading...</h3>
-    <h3 ng-hide="loading">Temperature: <b>{{curtemp}} C</b>, Humidity: <b>{{curhum}} %</b></h3>
+    <h1>RPi KRK Climate Information</h1> 
+    <h2 ng-show="live.loading">Live: Connecting... </h2><h2 ng-hide="live.loading">Live:<span ng-show="live.time"> Temperature: <b>{{live.temperature}} C</b>, Humidity: <b>{{live.humidity}} %</b> <span id="timedate">({{live.date}} {{live.time}})</span></span><span ng-show="live.err" style="color:red"> {{live.err}}</span></h2>
+    <h3 ng-show="loading">Loading...</h3><h3 ng-hide="loading">Last: Temperature: <b>{{curtemp}} C</b>, Humidity: <b>{{curhum}} %</b> <span id="timedate">({{curtimestamp}})</span></h3>
     <div id="hc_column" style="width: 95%; margin: 0 auto"></div>
 </body>
 
