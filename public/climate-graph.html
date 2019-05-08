@@ -15,11 +15,12 @@
         console.log("App initialized");
         app.controller("MainCtrl", ["$scope", "$http", "$interval", function($scope, $http, $interval) {
 	    var base_url = "http://rpikrk.api.seewip.com:20080/";
-            $scope.curtemp = "n/a";
-            $scope.curhum = "n/a";
-	    $scope.curtimestamp = "n/a";
+            $scope.curtemp = "?";
+            $scope.curhum = "?";
+	    $scope.curtimestamp = "?";
 	    $scope.live = {loading: true};
             $scope.loading = true;
+	    $scope.livegraph = {ready: false, timestamp: [], temperature: [], humidity: []};
 
             var timestamp, temperature, humidity;
             
@@ -94,6 +95,9 @@
 				max: 100,
                                 opposite: true
                             }],
+			    title: {
+				text: "Climate History"
+			    },
                             tooltip: {
                                 shared: true
                             },
@@ -121,7 +125,85 @@
                         };
 
                         Highcharts.chart('hc_column', hc);
-	    }
+	    };
+
+	    $scope.update_graph_live = function() {
+	                var hc = {
+                            chart: {
+                                zoomType: 'xy'
+                            },
+                            title: {
+                                text: null
+                            },
+                            xAxis: {
+                                categories: $scope.livegraph.timestamp,
+                                crosshair: true
+                            },
+                            yAxis: [{ // Primary yAxis
+                                labels: {
+                                    format: '{value} C',
+                                    style: {
+                                        color: Highcharts.getOptions().colors[1]
+                                    }
+                                },
+                                title: {
+                                    text: 'Temperature (C)',
+                                    style: {
+                                        color: Highcharts.getOptions().colors[1]
+                                    }
+                                }
+
+                            }, { // Secondary yAxis
+                                gridLineWidth: 0,
+                                title: {
+                                    text: 'Humidity (%)',
+                                    style: {
+                                        color: "#7cb5ec"
+                                        //color: Highcharts.getOptions().colors[0]
+                                    }
+                                },
+                                labels: {
+                                    format: '{value} %',
+                                    style: {
+                                        color: "#434348"
+                                        //color: Highcharts.getOptions().colors[0]
+                                    }
+                                },
+				min: 0,
+				max: 100,
+                                opposite: true
+                            }],
+			    title: {
+				text: "Live Climate History"
+			    },
+                            tooltip: {
+                                shared: true
+                            },
+                            plotOptions: {
+                                series: {
+                                    marker: {
+                                        enabled: false
+                                    },
+				    animation: false
+                                }
+                            },
+                            series: [{
+                                type: 'spline',
+                                name: 'Temperature',
+                                yAxis: 0,
+                                data: $scope.livegraph.temperature,
+				color: "#434348"
+                            }, {
+                                type: 'spline',
+                                name: 'Humidity',
+                                yAxis: 1,
+                                data: $scope.livegraph.humidity,
+                                color: "#7cb5ec"
+                            }]
+                        };
+
+	                Highcharts.chart('hc_column_live', hc);
+	    };
 
             $scope.refresh = function() {
                 $scope.loading = true;
@@ -160,7 +242,23 @@
                     .get(base_url+"api/v1/climate_current?apikey=" + getParameterByName("apikey"))
                     .then(function(response) {
 			$scope.live = response.data;
+	
+		    	$scope.livegraph.timestamp.push($scope.live.date+" "+$scope.live.time);
+			$scope.livegraph.temperature.push($scope.live.temperature);
+			$scope.livegraph.humidity.push($scope.live.humidity);
+
+			if($scope.livegraph.timestamp.length > 2)
+			    $scope.livegraph.ready = true;
+
+			var livegraph_max = 12*10;
+			if($scope.livegraph.timestamp.length > livegraph_max) {
+			    $scope.livegraph.timestamp = $scope.livegraph.timestamp.slice(-1*livegraph_max);
+			    $scope.livegraph.temperature = $scope.livegraph.temperature.slice(-1*livegraph_max);
+			    $scope.livegraph.humidity = $scope.livegraph.humidity.slice(-1*livegraph_max);
+			}
+
 			$scope.update_graph();
+			$scope.update_graph_live();
 		    });
 	    };	
 
@@ -178,11 +276,12 @@
     </style>
 </head>
 
-<body ng-controller="MainCtrl">
+<body ng-controller="MainCtrl" style="text-align: center;">
     <h1>RPi KRK Climate Information</h1> 
     <h2 ng-show="live.loading">Live: Connecting... </h2><h2 ng-hide="live.loading">Live:<span ng-show="live.time"> Temperature: <b>{{live.temperature}} C</b>, Humidity: <b>{{live.humidity}} %</b> <span id="timedate">({{live.date}} {{live.time}})</span></span><span ng-show="live.err" style="color:red"> {{live.err}}</span></h2>
-    <h3 ng-show="loading">Loading...</h3><h3 ng-hide="loading">Last: Temperature: <b>{{curtemp}} C</b>, Humidity: <b>{{curhum}} %</b> <span id="timedate">({{curtimestamp}})</span></h3>
-    <div id="hc_column" style="width: 95%; margin: 0 auto"></div>
+    <h3 ng-show="loading">[Loading data...] </h3><h3>Last: Temperature: <b>{{curtemp}} C</b>, Humidity: <b>{{curhum}} %</b> <span id="timedate">({{curtimestamp}})</span></h3>
+    <div ng-show="livegraph.ready" id="hc_column_live" style="width: 95%; margin: 0 auto;"></div>
+    <div id="hc_column" style="width: 95%; margin: 0 auto;"></div>
 </body>
 
 </html>
