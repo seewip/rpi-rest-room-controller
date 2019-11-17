@@ -20,10 +20,10 @@
   "dependencies": {
     "body-parser": "^1.17.2",
     "cors": "^2.8.4",
-    "express": "^4.15.4",
-    "helmet": "^3.8.1",
+    "express": "^4.17.1",
+    "helmet": "^3.21.2",
     "moment": "^2.18.1",
-    "mongodb": "^2.2.31",
+    "mongodb": "^3.3.4",
     "path": "^0.12.7"
   }
 }

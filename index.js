@@ -14,7 +14,7 @@ var cors = require("cors");
 var fs = require("fs");
 
 var publicFolder = path.join(__dirname, '/public');
-var MongoClient = require('mongodb').MongoClient;
+var MDBClient = require('mongodb').MongoClient;
 var port = (process.env.PORT || 10000);
 
 var app = express();
@@ -81,22 +81,28 @@ function getTemps(insertIntoDB) {
 	    if (!insertIntoDB) return {err: "Sensor returned malformed information"};
         } else {
             var obj = {time: moment().format('HH:mm:ss'), date: moment().format('DD.MM.YYYY'), timestamp: moment().unix(), temperature: Number(input[0]), humidity: Number(input[1])};
-	    if (insertIntoDB) db.insert(obj);
+	    if (insertIntoDB) db.insertOne(obj);
 	    else return obj;
         }
 }
 
 checkInternet(function() {
 
-MongoClient.connect(mdbURL, {
-    native_parser: true
-}, function(err, database) {
+var DBClient = new MDBClient(mdbURL, {
+    native_parser: true,
+    useUnifiedTopology: true
+});
 
+//MDBClient.connect(mdbURL, {
+//    native_parser: true
+//}, function(err, database) {
+DBClient.connect(function(err) {
     if (err) {
         console.log("CAN NOT CONNECT TO DB: " + err);
         throw err;
     }
 
+    var database = DBClient.db("rpi-rest-room-controller");
     db = database.collection("temperature_humidity");
 
     // Run temperature and humidity data gathering

@@ -250,7 +250,7 @@
 			if($scope.livegraph.timestamp.length > 2)
 			    $scope.livegraph.ready = true;
 
-			var livegraph_max = 12*10;
+			var livegraph_max = 12*60;
 			if($scope.livegraph.timestamp.length > livegraph_max) {
 			    $scope.livegraph.timestamp = $scope.livegraph.timestamp.slice(-1*livegraph_max);
 			    $scope.livegraph.temperature = $scope.livegraph.temperature.slice(-1*livegraph_max);
