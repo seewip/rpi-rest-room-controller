@@ -280,8 +280,8 @@
     <h1>RPi KRK Climate Information</h1> 
     <h2 ng-show="live.loading">Live: Connecting... </h2><h2 ng-hide="live.loading">Live:<span ng-show="live.time"> Temperature: <b>{{live.temperature}} C</b>, Humidity: <b>{{live.humidity}} %</b> <span id="timedate">({{live.date}} {{live.time}})</span></span><span ng-show="live.err" style="color:red"> {{live.err}}</span></h2>
     <h3 ng-show="loading">[Loading data...] </h3><h3>Last: Temperature: <b>{{curtemp}} C</b>, Humidity: <b>{{curhum}} %</b> <span id="timedate">({{curtimestamp}})</span></h3>
-    <div ng-show="livegraph.ready" id="hc_column_live" style="width: 95%; margin: 0 auto;"></div>
     <div id="hc_column" style="width: 95%; margin: 0 auto;"></div>
+    <div ng-show="livegraph.ready" id="hc_column_live" style="width: 95%; margin: 0 auto;"></div>
 </body>
 
 </html>
