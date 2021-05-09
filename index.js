@@ -76,7 +76,7 @@ function getTemps(insertIntoDB) {
         var exec = require('child_process').spawnSync;
         var process = exec('/home/pi/nodetemp.sh');
         var input = process.stdout.toString().split(",");
-        if (input.length != 2) {
+        if (input.length != 2 || Number(input[0]) < -20 || Number(input[0]) > 80 || Number(input[1]) < -5 || Number(input[1]) > 105) {
             console.log("Malformed information about temperature/humidity, skipping - " + process.stdout.toString());
 	    if (!insertIntoDB) return {err: "Sensor returned malformed information"};
         } else {
